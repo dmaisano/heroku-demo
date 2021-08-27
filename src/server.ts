@@ -1,23 +1,25 @@
 import connectRedis from "connect-redis";
-import "dotenv-safe/config";
 import express from "express";
 import session from "express-session";
 import Redis from "ioredis";
 import { COOKIE_NAME, __prod__ } from "./constants";
 import { getTemplate } from "./utils";
+import path from "path";
+require("dotenv-safe").config({
+  allowEmptyValues: true,
+});
 
 const main = async () => {
   const RedisStore = connectRedis(session);
-  const redis = new Redis({
-    host: __prod__ ? process.env.REDIS_HOST : `localhost`,
-    port: +process.env.REDIS_PORT,
-  });
+  const redis = new Redis(process.env.REDIS_URL);
 
   const app = express();
 
   // app.set(`trust proxy`, 1);
 
-  app.use(express.static(`public`));
+  const publicPath = __prod__ ? `/public` : `public`;
+  console.log({ publicPath });
+  app.use(express.static(publicPath));
 
   app.use(
     session({
