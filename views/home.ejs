@@ -9,37 +9,25 @@
 
     <title>Document</title>
   </head>
-  <body class="w-full flex justify-center mt-32">
+  <body class="h-full w-full flex justify-center items-center">
     <div>
-      <h1 class="text-5xl text-gray-700 font-semibold">Index Page</h1>
-      <div class="mt-6 text-xl">
-        <div class="mt-2">
-          <label class="inline-flex items-center">
-            <input
-              type="checkbox"
-              name="nodejs"
-              value="nodejs"
-              checked
-              disabled
-            />
-            <span class="ml-2">NodeJS</span>
-          </label>
-        </div>
-        <div class="mt-2">
-          <label class="inline-flex items-center">
-            <input type="checkbox" name="redis" value="redis" <%=
-            connections.redis ? "checked" : "" %> disabled/>
-            <span class="ml-2">Redis</span>
-          </label>
-        </div>
-        <div class="mt-2">
-          <label class="inline-flex items-center">
-            <input type="checkbox" name="postgres" value="postgres" <%=
-            connections.postgres ? "checked" : "" %> disabled/>
-            <span class="ml-2">Postgres</span>
-          </label>
-        </div>
-      </div>
+      <h1 class="text-5xl text-gray-700 font-semibold text-center">
+        Index Page
+      </h1>
+      <ul class="mt-6 text-xl list-disc">
+        <li class="mt-4 text-xl">
+          <span class="font-semibold">NodeJS</span> works ✅
+        </li>
+        <li class="mt-4 text-xl">
+          <span class="font-semibold">Redis</span> <%= connections.redis ? `is
+          installed / working ✅` : `is not working ❌` %>
+        </li>
+        <li class="mt-4 text-xl">
+          <span class="font-semibold">PostgresSQL</span> <%=
+          connections.postgres ? `is installed / working ✅` : `is not working
+          ❌` %>
+        </li>
+      </ul>
     </div>
   </body>
 </html>

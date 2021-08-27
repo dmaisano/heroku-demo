@@ -4,7 +4,9 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only src/server.ts"
+    "start": "npm run build && node dist/server.js",
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "build": "tsc"
   },
   "keywords": [],
   "author": "",
@@ -30,5 +32,8 @@
     "@types/ioredis": "^4.26.7",
     "@types/node": "^16.6.1",
     "ts-node-dev": "^1.1.8"
+  },
+  "engines": {
+    "node": "14"
   }
 }

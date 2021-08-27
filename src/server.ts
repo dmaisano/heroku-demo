@@ -5,11 +5,13 @@ import session from "express-session";
 import Redis from "ioredis";
 import { COOKIE_NAME, __prod__ } from "./constants";
 import { getTemplate } from "./utils";
-import path from "path";
 
 const main = async () => {
   const RedisStore = connectRedis(session);
-  const redis = new Redis(process.env.REDIS_URL);
+  const redis = new Redis({
+    host: __prod__ ? process.env.REDIS_HOST : `localhost`,
+    port: +process.env.REDIS_PORT,
+  });
 
   const app = express();
 
