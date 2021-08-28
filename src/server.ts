@@ -4,28 +4,47 @@ import session from "express-session";
 import Redis from "ioredis";
 import { COOKIE_NAME, __prod__ } from "./constants";
 import { getTemplate } from "./utils";
-import path from "path";
 require("dotenv-safe").config({
   allowEmptyValues: true,
 });
 
 const main = async () => {
   const RedisStore = connectRedis(session);
-  const redis = new Redis(process.env.REDIS_URL);
+  const redisClient = new Redis(process.env.REDIS_URL, {
+    // https://github.com/luin/ioredis#auto-reconnect
+    retryStrategy: (times) => {
+      const minute = 1000 * 60;
+      let delay = minute;
+      if (times >= 100 && times < 1000) {
+        delay = minute * 2.5;
+      } else if (times >= 1000 && times < 10000) {
+        delay = minute * 5;
+      } else if (times >= 10000) {
+        delay = minute * 10;
+      }
+      return delay;
+    },
+  });
+
+  redisClient.on("error", (err) => {
+    // ignore connection error
+    if (err.errno !== -4078) {
+      console.log(`Redis error: `, err);
+    }
+  });
 
   const app = express();
 
   // app.set(`trust proxy`, 1);
 
   const publicPath = __prod__ ? `/public` : `public`;
-  console.log({ publicPath });
   app.use(express.static(publicPath));
 
   app.use(
     session({
       name: COOKIE_NAME,
       store: new RedisStore({
-        client: redis,
+        client: redisClient,
         disableTouch: true,
       }),
       cookie: {
@@ -42,7 +61,7 @@ const main = async () => {
   );
 
   app.get(`/`, async (_, res) => {
-    const { status } = redis;
+    const { status } = redisClient;
 
     const connections = {
       redis: status === `connect` || status === `ready`,
