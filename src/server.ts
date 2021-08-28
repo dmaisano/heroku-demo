@@ -7,10 +7,31 @@ import { getTemplate } from "./utils";
 require("dotenv-safe").config({
   allowEmptyValues: true,
 });
+import { createConnection } from "typeorm";
 
 const main = async () => {
+  const {
+    DATABASE_HOST,
+    DATABASE_NAME,
+    DATABASE_PASS,
+    DATABASE_USER,
+    PORT,
+    REDIS_URL,
+    SESSION_SECRET,
+  } = process.env;
+  const conn = await createConnection({
+    type: "postgres",
+    host: DATABASE_HOST,
+    username: DATABASE_USER,
+    password: DATABASE_PASS,
+    database: DATABASE_NAME,
+    logging: true,
+    // synchronize: true,
+    entities: [],
+  });
+
   const RedisStore = connectRedis(session);
-  const redisClient = new Redis(process.env.REDIS_URL, {
+  const redisClient = new Redis(REDIS_URL, {
     // https://github.com/luin/ioredis#auto-reconnect
     retryStrategy: (times) => {
       const minute = 1000 * 60;
@@ -55,7 +76,7 @@ const main = async () => {
         domain: __prod__ ? process.env.DOMAIN : undefined,
       },
       saveUninitialized: false,
-      secret: process.env.SESSION_SECRET,
+      secret: SESSION_SECRET,
       resave: false,
     }),
   );
@@ -65,7 +86,7 @@ const main = async () => {
 
     const connections = {
       redis: status === `connect` || status === `ready`,
-      postgres: false,
+      postgres: conn.isConnected,
     };
 
     const page = await getTemplate({
@@ -76,7 +97,7 @@ const main = async () => {
     res.send(page);
   });
 
-  const port = parseInt(process.env.PORT);
+  const port = parseInt(PORT);
   app.listen(port, () => {
     console.log(
       `== App is running. ${

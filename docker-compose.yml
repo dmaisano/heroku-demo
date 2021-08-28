@@ -1,5 +1,15 @@
 version: "3.8"
 services:
+  postgres:
+    container_name: postgres
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
   redis:
     container_name: redis
     image: "redis:alpine"
