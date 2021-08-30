@@ -10,23 +10,11 @@ require("dotenv-safe").config({
 import { createConnection } from "typeorm";
 
 const main = async () => {
-  const {
-    DATABASE_HOST,
-    DATABASE_NAME,
-    DATABASE_PASS,
-    DATABASE_USER,
-    PORT,
-    REDIS_URL,
-    SESSION_SECRET,
-  } = process.env;
+  const { DATABASE_URL, PORT, REDIS_URL, SESSION_SECRET } = process.env;
   const conn = await createConnection({
     type: "postgres",
-    host: DATABASE_HOST,
-    username: DATABASE_USER,
-    password: DATABASE_PASS,
-    database: DATABASE_NAME,
+    url: DATABASE_URL,
     logging: true,
-    // synchronize: true,
     entities: [],
   });
 
