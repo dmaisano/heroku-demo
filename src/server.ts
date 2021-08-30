@@ -14,6 +14,7 @@ const main = async () => {
   const conn = await createConnection({
     type: "postgres",
     url: DATABASE_URL,
+    ssl: true,
     logging: true,
     entities: [],
   });
