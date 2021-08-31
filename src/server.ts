@@ -2,22 +2,56 @@ import connectRedis from "connect-redis";
 import express from "express";
 import session from "express-session";
 import Redis from "ioredis";
-import { COOKIE_NAME, __prod__ } from "./constants";
+import { ConnectionOptions, createConnection } from "typeorm";
+import { COOKIE_NAME, DB_PORT, __prod__ } from "./constants";
 import { getTemplate } from "./utils";
+import path from "path";
 require("dotenv-safe").config({
   allowEmptyValues: true,
 });
-import { createConnection } from "typeorm";
 
 const main = async () => {
-  const { DATABASE_URL, PORT, REDIS_URL, SESSION_SECRET } = process.env;
-  const conn = await createConnection({
-    type: "postgres",
-    url: DATABASE_URL,
-    ssl: true,
+  const {
+    DATABASE_URL,
+    DB_HOST,
+    DB_NAME,
+    DB_PASS,
+    DB_USER,
+    PORT,
+    REDIS_URL,
+    SESSION_SECRET,
+  } = process.env;
+
+  console.log({ __prod__ });
+
+  const connConfig: ConnectionOptions = {
+    type: `postgres`,
+    ssl: __prod__
+      ? {
+          rejectUnauthorized: false,
+        }
+      : false,
     logging: true,
     entities: [],
-  });
+  };
+
+  if (process.env.DATABASE_URL) {
+    Object.assign(connConfig, {
+      url: DATABASE_URL,
+    } as ConnectionOptions);
+  } else {
+    Object.assign(connConfig, {
+      host: DB_HOST,
+      database: DB_NAME,
+      port: DB_PORT,
+      username: DB_USER,
+      password: DB_PASS,
+    } as ConnectionOptions);
+  }
+
+  console.log({ connConfig });
+
+  const conn = await createConnection(connConfig);
 
   const RedisStore = connectRedis(session);
   const redisClient = new Redis(REDIS_URL, {
@@ -47,8 +81,10 @@ const main = async () => {
 
   // app.set(`trust proxy`, 1);
 
-  const publicPath = __prod__ ? `/public` : `public`;
-  app.use(express.static(publicPath));
+  // const publicPath = __prod__ ? `/public` : `public`;
+
+  console.log({ cwd: process.cwd() });
+  app.use(express.static(path.join(process.cwd(), `public`)));
 
   app.use(
     session({
