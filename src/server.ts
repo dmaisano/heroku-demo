@@ -1,26 +1,16 @@
-import connectRedis from "connect-redis";
 import express from "express";
-import session from "express-session";
 import Redis from "ioredis";
-import { ConnectionOptions, createConnection } from "typeorm";
-import { COOKIE_NAME, DB_PORT, __prod__ } from "./constants";
-import { getTemplate } from "./utils";
 import path from "path";
+import { ConnectionOptions, createConnection } from "typeorm";
+import { DB_PORT, __prod__ } from "./constants";
+import { getTemplate } from "./utils";
 require("dotenv-safe").config({
   allowEmptyValues: true,
 });
 
 const main = async () => {
-  const {
-    DATABASE_URL,
-    DB_HOST,
-    DB_NAME,
-    DB_PASS,
-    DB_USER,
-    PORT,
-    REDIS_URL,
-    SESSION_SECRET,
-  } = process.env;
+  const { DATABASE_URL, DB_HOST, DB_NAME, DB_PASS, DB_USER, PORT, REDIS_URL } =
+    process.env;
 
   console.log({ __prod__ });
 
@@ -53,7 +43,6 @@ const main = async () => {
 
   const conn = await createConnection(connConfig);
 
-  const RedisStore = connectRedis(session);
   const redisClient = new Redis(REDIS_URL, {
     // https://github.com/luin/ioredis#auto-reconnect
     retryStrategy: (times) => {
@@ -86,26 +75,6 @@ const main = async () => {
   console.log({ cwd: process.cwd() });
   app.use(express.static(path.join(process.cwd(), `public`)));
 
-  app.use(
-    session({
-      name: COOKIE_NAME,
-      store: new RedisStore({
-        client: redisClient,
-        disableTouch: true,
-      }),
-      cookie: {
-        maxAge: 1000 * 60 * 60 * 24 * 365 * 10, // 10 years
-        httpOnly: true,
-        sameSite: "lax", // csrfn
-        secure: __prod__, // cookie only works in https
-        domain: __prod__ ? process.env.DOMAIN : undefined,
-      },
-      saveUninitialized: false,
-      secret: SESSION_SECRET,
-      resave: false,
-    }),
-  );
-
   app.get(`/`, async (_, res) => {
     const { status } = redisClient;
 
@@ -123,7 +92,7 @@ const main = async () => {
   });
 
   const port = parseInt(PORT);
-  app.listen(port, () => {
+  app.listen(port || 80, () => {
     console.log(
       `== App is running. ${
         __prod__ ? `Listening on port ${port}` : `http://localhost:${port}`
